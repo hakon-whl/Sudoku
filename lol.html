@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktives Sudoku Frontend</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #333; /* Hintergrund für Kontrast */
+        }
+
+        #sudoku-container {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            width: 360px;
+            height: 360px;
+            border: 4px solid #333; /* Hauptumrandung für das Sudoku */
+            box-sizing: border-box;
+            background-color: #222; /* Hintergrundfarbe des Sudoku-Felds */
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #555; /* Dünne Linien für kleinere Felder */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            position: relative;
+        }
+
+        .cell input {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 1.2em;
+            border: none;
+            outline: none;
+            background-color: transparent;
+            color: #ddd;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Dickere Linien für die 3x3 Unterteilungen */
+        .cell:nth-child(3n+1):not(:first-child) {
+            border-left: 2px solid #888;
+        }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            border-top: 2px solid #888;
+        }
+    </style>
+</head>
+<body>
+
+<div id="sudoku-container"></div>
+
+<script>
+    const container = document.getElementById('sudoku-container');
+
+    // Erstellen der Zellen mit Eingabefeldern und IDs
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 1;  // Limit input to 1 character
+            input.id = `cell-${row}-${col}`;  // Set ID for easy access
+
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^1-9]/g, '');  // Allow only numbers 1-9
+            });
+
+            cell.appendChild(input);
+            container.appendChild(cell);
+        }
+    }
+
+    function getCellValue(row, col) {
+        const cell = document.getElementById(`cell-${row}-${col}`);
+        if (cell) {
+            return cell.value;
+        } else {
+            console.error(`Zelle bei (${row}, ${col}) nicht gefunden.`);
+            return null;
+        }
+    }
+    function getRowValues(row) {
+        const rowValues = [];
+        for (let col = 0; col < 9; col++) {
+            rowValues.push(getCellValue(row, col));
+        }
+        return rowValues;
+    }
+    function getColumnValues(col) {
+        const columnValues = [];
+        for (let row = 0; row < 9; row++) {
+            columnValues.push(getCellValue(row, col));
+        }
+        return columnValues;
+    }
+    function getBoxValues(row, col) {
+        const boxValues = [];
+
+        // Berechne die Startkoordinaten der 3x3-Box
+        const startRow = Math.floor(row / 3) * 3;
+        const startCol = Math.floor(col / 3) * 3;
+
+        // Schleife durch die 3x3-Box und sammle alle Werte
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                boxValues.push(getCellValue(startRow + i, startCol + j));
+            }
+        }
+        return boxValues;
+    }
+
+
+    console.log(getRowValues(0));  // Werte der ersten Zeile
+    console.log(getColumnValues(1));  // Werte der zweiten Spalte
+    console.log(getBoxValues(4, 4));  // Werte der 3x3-Box, die die Zelle (4,4) enthält
+
+    // Funktion zum Setzen eines Wertes in eine Zelle
+    function setCellValue(row, col, value) {
+        const cell = document.getElementById(`cell-${row}-${col}`);
+        if (cell) {
+            cell.value = value;
+        } else {
+            console.error(`Zelle bei (${row}, ${col}) nicht gefunden.`);
+        }
+    }
+    function getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    //17 restzahlen für max schwierugkeit
+    for (let row = 1; row <= 9; row++) {
+        for (let col = 1; col <= 9; col++) {
+            let zellenwert;
+            do {
+                zellenwert = getRandomNumber(1, 9);
+            } while (getColumnValues(col - 1).includes(zellenwert) ||
+            getRowValues(row - 1).includes(zellenwert) ||
+            getBoxValues(row - 1, col - 1).includes(zellenwert));
+
+            setCellValue(row - 1, col - 1, zellenwert);
+        }
+    }
+
+</script>
+
+</body>
+</html>
